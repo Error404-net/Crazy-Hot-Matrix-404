@@ -1,41 +1,25 @@
 
 
-## Plan: Click-to-Place Selected Points & Distribute Selected
+## Plan: Fix Build Error + Add "Place in Zone" Feature
 
-### 1. Add "Place Mode" to sidebar and canvas (`MatrixSidebar.tsx`, `MatrixCanvas.tsx`, `Index.tsx`)
+### 1. Fix syntax error in `MatrixCanvas.tsx` (line 295-296)
+The points `.map()` is missing its closing `})}`. Line 295 has `);` but the map's closing bracket is missing before the placement overlay block starts at line 296.
 
-Replace the offset-based mass move with a **"Place Here"** button:
-- When clicked with selected points, enter a **placement mode** (state lifted to `Index.tsx`: `placementMode: boolean`)
-- Canvas cursor changes to crosshair
-- On canvas click, all selected points are placed centered around that click location, spread out with small random offsets so they don't overlap (using Gaussian jitter within ~1 unit radius)
-- Placement mode auto-exits after placing
+**Fix**: Add `})}` after line 295, before the placement mode overlay.
 
-### 2. Add "Distribute Selected" button (`MatrixSidebar.tsx`, `Index.tsx`)
+### 2. Add "Place in Zone" button to sidebar selection controls (`MatrixSidebar.tsx`)
+Next to "Place on Chart" and "Distribute", add a **"Place in Zone"** button that opens a dropdown/select of available zones. When a zone is selected, the selected points are randomly distributed within that zone's bounds (x1,y1 → x2,y2) with jitter.
 
-- When points are selected, show a **"Distribute Selected"** button alongside Delete
-- This calls `distributePoints` but only on the selected subset, then batch-updates just those points
-- Reuses existing `distributePoints` logic from `src/lib/distributePoints.ts`
+- Add a `Select` component listing zones by name
+- On zone selection, call a new `onPlaceInZone(zoneId: string)` callback
 
-### 3. Implementation details
-
-**`Index.tsx`**:
-- Add `placementMode` state
-- Add `handlePlaceAt(x: number, y: number)` — takes selected points, spreads them around (x,y) with small random offsets, calls `batchUpdatePoints`
-- Add `handleDistributeSelected()` — filters selected points, runs `distributePoints`, batch updates
-- Pass `placementMode`, `onPlaceAt`, `onEnterPlaceMode`, `onDistributeSelected` to children
-
-**`MatrixCanvas.tsx`**:
-- Accept `placementMode` and `onPlaceAt` props
-- When `placementMode` is true: show crosshair cursor, on click convert pixel to data coords and call `onPlaceAt(x, y)`, ignore normal drag behavior
-- Visual indicator (e.g., subtle overlay text "Click to place N points")
-
-**`MatrixSidebar.tsx`**:
-- Replace offset inputs + Move button with a **"Place on Chart"** button that triggers `onEnterPlaceMode`
-- Add **"Distribute Selected"** button
-- Keep Delete Selected button
+### 3. Add `handlePlaceInZone` in `Index.tsx`
+- Takes a zone ID, finds zone bounds (x1,y1,x2,y2)
+- Distributes selected points randomly within those bounds using `Math.random()` scaling
+- Calls `batchUpdatePoints`
 
 ### Files touched
-- `src/pages/Index.tsx` — placement mode state, place handler, distribute handler
-- `src/components/MatrixCanvas.tsx` — placement mode click handling, cursor
-- `src/components/MatrixSidebar.tsx` — replace mass move UI with Place + Distribute buttons
+- `src/components/MatrixCanvas.tsx` — fix missing `})}`
+- `src/components/MatrixSidebar.tsx` — add zone placement dropdown button
+- `src/pages/Index.tsx` — add `handlePlaceInZone` handler, pass to sidebar
 
