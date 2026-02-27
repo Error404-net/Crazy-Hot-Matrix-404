@@ -6,7 +6,7 @@ import { Slider } from '@/components/ui/slider';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Plus, Upload, Edit2, X, Check, FileDown, Grid3X3, ImagePlus, MousePointerClick, Shuffle, CheckSquare, MapPin } from 'lucide-react';
+import { Trash2, Plus, Upload, Edit2, X, Check, FileDown, Grid3X3, ImagePlus, MousePointerClick, Shuffle, CheckSquare, MapPin, PanelLeftClose } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DataPoint, Zone, MatrixConfig } from '@/types/matrix';
 import { parseCSV, downloadSampleCSV } from '@/lib/csvUtils';
@@ -31,13 +31,14 @@ interface MatrixSidebarProps {
   onEnterPlaceMode: () => void;
   onDistributeSelected: () => void;
   onPlaceInZone: (zoneId: string) => void;
+  onHideMenu?: () => void;
 }
 
 export function MatrixSidebar({
   config, points, zones,
   onUpdateConfig, onAddPoint, onUpdatePoint, onDeletePoint, onSetPoints,
   onAddZone, onUpdateZone, onDeleteZone,
-  selectedIds, onSelectedIdsChange, onDeleteSelected, onEnterPlaceMode, onDistributeSelected, onPlaceInZone,
+  selectedIds, onSelectedIdsChange, onDeleteSelected, onEnterPlaceMode, onDistributeSelected, onPlaceInZone, onHideMenu,
 }: MatrixSidebarProps) {
   const [newName, setNewName] = useState('');
   const [newX, setNewX] = useState('');
@@ -152,9 +153,24 @@ export function MatrixSidebar({
 
 
   return (
-    <div className="w-72 border-r border-border bg-card flex flex-col h-full">
+    <div className="w-full min-w-0 border-r border-border bg-card flex flex-col h-full">
       <input ref={iconRef} type="file" accept="image/*" className="hidden" onChange={handleIconUpload} />
       <input ref={zoneImageRef} type="file" accept="image/*" className="hidden" onChange={handleZoneImageUpload} />
+
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Editor Menu</div>
+        {onHideMenu && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={onHideMenu}
+            title="Hide menu"
+          >
+            <PanelLeftClose className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
 
       <div className="flex border-b border-border">
         {(['config', 'points', 'zones'] as const).map(s => (
