@@ -6,7 +6,7 @@ import { Slider } from '@/components/ui/slider';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Plus, Upload, Edit2, X, Check, FileDown, Grid3X3, ImagePlus, Move, CheckSquare } from 'lucide-react';
+import { Trash2, Plus, Upload, Edit2, X, Check, FileDown, Grid3X3, ImagePlus, MousePointerClick, Shuffle, CheckSquare } from 'lucide-react';
 import { DataPoint, Zone, MatrixConfig } from '@/types/matrix';
 import { parseCSV, downloadSampleCSV } from '@/lib/csvUtils';
 import { distributePoints } from '@/lib/distributePoints';
@@ -27,14 +27,15 @@ interface MatrixSidebarProps {
   selectedIds: Set<string>;
   onSelectedIdsChange: (ids: Set<string>) => void;
   onDeleteSelected: () => void;
-  onMassMove: (dx: number, dy: number) => void;
+  onEnterPlaceMode: () => void;
+  onDistributeSelected: () => void;
 }
 
 export function MatrixSidebar({
   config, points, zones,
   onUpdateConfig, onAddPoint, onUpdatePoint, onDeletePoint, onSetPoints,
   onAddZone, onUpdateZone, onDeleteZone,
-  selectedIds, onSelectedIdsChange, onDeleteSelected, onMassMove,
+  selectedIds, onSelectedIdsChange, onDeleteSelected, onEnterPlaceMode, onDistributeSelected,
 }: MatrixSidebarProps) {
   const [newName, setNewName] = useState('');
   const [newX, setNewX] = useState('');
@@ -44,8 +45,6 @@ export function MatrixSidebar({
   const [editX, setEditX] = useState('');
   const [editY, setEditY] = useState('');
   const [editCategory, setEditCategory] = useState('');
-  const [massDx, setMassDx] = useState('0');
-  const [massDy, setMassDy] = useState('0');
   const fileRef = useRef<HTMLInputElement>(null);
   const iconRef = useRef<HTMLInputElement>(null);
   const zoneImageRef = useRef<HTMLInputElement>(null);
@@ -149,13 +148,6 @@ export function MatrixSidebar({
     onSelectedIdsChange(next);
   };
 
-  const handleApplyMassMove = () => {
-    const dx = parseFloat(massDx) || 0;
-    const dy = parseFloat(massDy) || 0;
-    if (dx === 0 && dy === 0) return;
-    onMassMove(dx, dy);
-    toast.success(`Moved ${selectedIds.size} points`);
-  };
 
   return (
     <div className="w-72 border-r border-border bg-card flex flex-col h-full">
@@ -247,24 +239,17 @@ export function MatrixSidebar({
               {selectedIds.size > 0 && (
                 <div className="p-2 rounded border border-border bg-muted/50 space-y-2">
                   <Label className="text-[10px] font-semibold text-muted-foreground">{selectedIds.size} selected</Label>
-                  <div className="grid grid-cols-2 gap-1">
-                    <div>
-                      <Label className="text-[10px]">X offset</Label>
-                      <Input type="number" value={massDx} onChange={e => setMassDx(e.target.value)} className="h-6 text-xs" step="0.5" />
-                    </div>
-                    <div>
-                      <Label className="text-[10px]">Y offset</Label>
-                      <Input type="number" value={massDy} onChange={e => setMassDy(e.target.value)} className="h-6 text-xs" step="0.5" />
-                    </div>
-                  </div>
                   <div className="flex gap-1">
-                    <Button size="sm" variant="outline" className="flex-1 h-6 text-[10px]" onClick={handleApplyMassMove}>
-                      <Move className="w-3 h-3 mr-1" /> Move
+                    <Button size="sm" variant="outline" className="flex-1 h-6 text-[10px]" onClick={onEnterPlaceMode}>
+                      <MousePointerClick className="w-3 h-3 mr-1" /> Place on Chart
                     </Button>
-                    <Button size="sm" variant="destructive" className="h-6 text-[10px]" onClick={onDeleteSelected}>
-                      <Trash2 className="w-3 h-3 mr-1" /> Delete
+                    <Button size="sm" variant="outline" className="flex-1 h-6 text-[10px]" onClick={onDistributeSelected}>
+                      <Shuffle className="w-3 h-3 mr-1" /> Distribute
                     </Button>
                   </div>
+                  <Button size="sm" variant="destructive" className="w-full h-6 text-[10px]" onClick={onDeleteSelected}>
+                    <Trash2 className="w-3 h-3 mr-1" /> Delete Selected
+                  </Button>
                 </div>
               )}
             </div>
