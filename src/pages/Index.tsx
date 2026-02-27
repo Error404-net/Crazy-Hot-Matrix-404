@@ -24,6 +24,7 @@ const Index = () => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [placementMode, setPlacementMode] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [sidebarSize, setSidebarSize] = useState(24);
 
   const handlePointMove = (id: string, x: number, y: number) => {
     updatePoint(id, { x, y });
@@ -119,10 +120,15 @@ const Index = () => {
         onApplyColorScheme={applyColorScheme}
       />
       <div className="flex-1 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal">
+        <ResizablePanelGroup direction="horizontal" autoSaveId="matrix-main-layout">
           {sidebarVisible && (
             <>
-              <ResizablePanel defaultSize={22} minSize={15} maxSize={40}>
+              <ResizablePanel
+                defaultSize={sidebarSize}
+                minSize={16}
+                maxSize={45}
+                onResize={(size) => setSidebarSize(size)}
+              >
                 <MatrixSidebar
                   config={state.config}
                   points={state.points}
@@ -141,6 +147,7 @@ const Index = () => {
                   onEnterPlaceMode={() => setPlacementMode(true)}
                   onDistributeSelected={handleDistributeSelected}
                   onPlaceInZone={handlePlaceInZone}
+                  onHideMenu={() => setSidebarVisible(false)}
                 />
               </ResizablePanel>
               <ResizableHandle withHandle />
