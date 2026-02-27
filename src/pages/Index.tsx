@@ -6,6 +6,7 @@ import { MatrixToolbar } from '@/components/MatrixToolbar';
 import { COLOR_SCHEMES } from '@/lib/presets';
 import { Input } from '@/components/ui/input';
 import { Search, Flag } from 'lucide-react';
+import { distributePoints } from '@/lib/distributePoints';
 
 const Index = () => {
   const {
@@ -19,6 +20,7 @@ const Index = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [placementMode, setPlacementMode] = useState(false);
 
   const handlePointMove = (id: string, x: number, y: number) => {
     updatePoint(id, { x, y });
@@ -38,18 +40,29 @@ const Index = () => {
     setSelectedIds(new Set());
   };
 
-  const handleMassMove = (dx: number, dy: number) => {
-    const updates = Array.from(selectedIds).map(id => {
-      const p = state.points.find(pt => pt.id === id);
-      if (!p) return null;
-      return {
-        id,
-        partial: {
-          x: Math.max(state.config.xMin + 0.1, Math.min(state.config.xMax - 0.1, p.x + dx)),
-          y: Math.max(state.config.yMin + 0.1, Math.min(state.config.yMax - 0.1, p.y + dy)),
-        },
-      };
-    }).filter(Boolean) as Array<{ id: string; partial: { x: number; y: number } }>;
+  const handlePlaceAt = (x: number, y: number) => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    const count = ids.length;
+    const updates = ids.map((id, i) => {
+      // Spread points around click location with Gaussian jitter
+      const angle = (2 * Math.PI * i) / count + (Math.random() - 0.5) * 0.5;
+      const radius = count === 1 ? 0 : 0.3 + Math.random() * 0.7;
+      const nx = Math.max(state.config.xMin + 0.1, Math.min(state.config.xMax - 0.1,
+        Math.round((x + Math.cos(angle) * radius) * 100) / 100));
+      const ny = Math.max(state.config.yMin + 0.1, Math.min(state.config.yMax - 0.1,
+        Math.round((y + Math.sin(angle) * radius) * 100) / 100));
+      return { id, partial: { x: nx, y: ny } };
+    });
+    batchUpdatePoints(updates);
+    setPlacementMode(false);
+  };
+
+  const handleDistributeSelected = () => {
+    if (selectedIds.size === 0) return;
+    const selectedPoints = state.points.filter(p => selectedIds.has(p.id));
+    const distributed = distributePoints(selectedPoints, state.config);
+    const updates = distributed.map(p => ({ id: p.id, partial: { x: p.x, y: p.y } }));
     batchUpdatePoints(updates);
   };
 
@@ -99,7 +112,8 @@ const Index = () => {
           selectedIds={selectedIds}
           onSelectedIdsChange={setSelectedIds}
           onDeleteSelected={handleDeleteSelected}
-          onMassMove={handleMassMove}
+          onEnterPlaceMode={() => setPlacementMode(true)}
+          onDistributeSelected={handleDistributeSelected}
         />
         <div className="flex-1 flex flex-col overflow-auto">
           <div className="p-2 flex items-center gap-2">
@@ -124,6 +138,8 @@ const Index = () => {
               canvasRef={canvasRef as React.RefObject<HTMLDivElement>}
               selectedIds={selectedIds}
               onSelectedIdsChange={setSelectedIds}
+              placementMode={placementMode}
+              onPlaceAt={handlePlaceAt}
             />
           </div>
         </div>

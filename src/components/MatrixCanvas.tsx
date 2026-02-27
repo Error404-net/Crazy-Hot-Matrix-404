@@ -13,6 +13,8 @@ interface MatrixCanvasProps {
   canvasRef: React.RefObject<HTMLDivElement>;
   selectedIds: Set<string>;
   onSelectedIdsChange: (ids: Set<string>) => void;
+  placementMode?: boolean;
+  onPlaceAt?: (x: number, y: number) => void;
 }
 
 const PADDING = 60;
@@ -20,7 +22,7 @@ const CANVAS_SIZE = 600;
 
 export function MatrixCanvas({
   config, zones, points, background, onPointMove, onPointsMove, onPointClick, searchTerm, canvasRef,
-  selectedIds = new Set(), onSelectedIdsChange,
+  selectedIds = new Set(), onSelectedIdsChange, placementMode = false, onPlaceAt,
 }: MatrixCanvasProps) {
   const [dragging, setDragging] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState<{ cx: number; cy: number } | null>(null);
@@ -104,6 +106,15 @@ export function MatrixCanvas({
   };
 
   const handleCanvasClick = (e: React.MouseEvent) => {
+    if (placementMode && onPlaceAt && svgRef.current) {
+      const rect = svgRef.current.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      const x = Math.round(fromCanvasX(cx) * 100) / 100;
+      const y = Math.round(fromCanvasY(cy) * 100) / 100;
+      onPlaceAt(clampX(x), clampY(y));
+      return;
+    }
     if ((e.target as Element) === svgRef.current || (e.target as Element).tagName === 'rect') {
       onSelectedIdsChange(new Set());
     }
@@ -144,7 +155,7 @@ export function MatrixCanvas({
         ref={svgRef}
         width={totalW}
         height={totalH}
-        className="select-none"
+        className={`select-none ${placementMode ? 'cursor-crosshair' : ''}`}
         onMouseMove={handleMouseMove}
         onMouseUp={() => { setDragging(null); setDragStart(null); }}
         onMouseLeave={() => { setDragging(null); setDragStart(null); }}
@@ -282,7 +293,16 @@ export function MatrixCanvas({
                 className="pointer-events-none">{p.name}</text>
             </g>
           );
-        })}
+        {placementMode && (
+          <g className="pointer-events-none">
+            <rect x={PADDING} y={PADDING} width={CANVAS_SIZE} height={CANVAS_SIZE}
+              fill="hsla(210,80%,50%,0.08)" />
+            <text x={totalW / 2} y={totalH / 2} textAnchor="middle" fontSize={16} fontWeight={700}
+              fill="hsl(210,80%,50%)" opacity={0.7}>
+              Click to place {selectedIds.size} point{selectedIds.size !== 1 ? 's' : ''}
+            </text>
+          </g>
+        )}
       </svg>
     </div>
   );
