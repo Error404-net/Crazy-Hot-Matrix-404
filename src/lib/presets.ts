@@ -8,7 +8,7 @@ export const PRESETS: MatrixPreset[] = [
       title: 'RedFlag Grapher',
       xAxisLabel: 'Hot Axis',
       yAxisLabel: 'Crazy Axis',
-      xMin: 0, xMax: 10, yMin: 0, yMax: 10,
+      xMin: 0, xMax: 10, yMin: 4, yMax: 10,
       showDiagonal: true,
       diagonalPoints: { x1: 5, y1: 4, x2: 10, y2: 10 },
     },
