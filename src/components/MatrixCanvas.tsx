@@ -20,7 +20,7 @@ const CANVAS_SIZE = 600;
 
 export function MatrixCanvas({
   config, zones, points, background, onPointMove, onPointsMove, onPointClick, searchTerm, canvasRef,
-  selectedIds, onSelectedIdsChange,
+  selectedIds = new Set(), onSelectedIdsChange,
 }: MatrixCanvasProps) {
   const [dragging, setDragging] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState<{ cx: number; cy: number } | null>(null);
