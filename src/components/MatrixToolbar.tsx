@@ -146,9 +146,9 @@ export function MatrixToolbar({
       </DropdownMenu>
 
       {/* Share */}
-      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleShare}>
-        
-      </Button>
+      
+
+
     </div>);
 
 }
