@@ -38,6 +38,8 @@ Install command: npm ci
 
 If you previously set a Bun install command (for example `bun install --frozen-lockfile`), replace it with `npm ci`.
 
+For Wrangler-based deploys (`npx wrangler versions upload`), this repo includes `wrangler.jsonc` configured to upload the built static assets from `dist/`.
+
 ## Tests
 
 ```bash
